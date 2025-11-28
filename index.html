@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Grid - 写真グリッドアプリ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a5a;
+        }
+
+        .grid-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .photo-grid {
+            display: grid;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            border-radius: 8px;
+            border: 3px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            min-height: 80px;
+        }
+
+        .grid-cell:hover {
+            border-color: #667eea;
+            background: #f8f8ff;
+        }
+
+        .grid-cell.has-photo {
+            border: none;
+        }
+
+        .grid-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .grid-cell .placeholder {
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .grid-cell .placeholder-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .grid-cell .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .grid-cell.has-photo:hover .delete-btn {
+            display: flex;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-btn-icon {
+            font-size: 24px;
+        }
+
+        .btn-camera {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-gallery {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #ddd;
+            color: #666;
+        }
+
+        #cameraInput, #fileInput {
+            display: none;
+        }
+
+        .camera-preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .camera-preview.active {
+            display: flex;
+        }
+
+        .camera-preview video {
+            flex: 1;
+            object-fit: cover;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .capture-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #ddd;
+            cursor: pointer;
+        }
+
+        .capture-btn:active {
+            transform: scale(0.95);
+        }
+
+        .close-camera {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .control-row {
+                flex-direction: column;
+            }
+
+            .grid-cell {
+                min-width: 60px;
+                min-height: 60px;
+            }
+
+            .grid-cell .placeholder {
+                font-size: 12px;
+            }
+
+            .grid-cell .placeholder-icon {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Photo Grid</h1>
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="rows">行数:</label>
+                    <input type="number" id="rows" min="1" max="10" value="3">
+                </div>
+                <div class="control-group">
+                    <label for="cols">列数:</label>
+                    <input type="number" id="cols" min="1" max="10" value="3">
+                </div>
+                <button class="btn-primary" onclick="updateGrid()">グリッド更新</button>
+                <button class="btn-danger" onclick="clearAllPhotos()">全削除</button>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="photo-grid" id="photoGrid"></div>
+        </div>
+    </div>
+
+    <!-- Photo Selection Modal -->
+    <div class="modal" id="photoModal">
+        <div class="modal-content">
+            <h2>写真を追加</h2>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-camera" onclick="openCamera()">
+                    <span class="modal-btn-icon">📷</span>
+                    カメラで撮影
+                </button>
+                <button class="modal-btn btn-gallery" onclick="openGallery()">
+                    <span class="modal-btn-icon">🖼️</span>
+                    ギャラリーから選択
+                </button>
+                <button class="modal-btn btn-cancel" onclick="closeModal()">
+                    キャンセル
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Preview -->
+    <div class="camera-preview" id="cameraPreview">
+        <video id="cameraVideo" autoplay playsinline></video>
+        <button class="close-camera" onclick="closeCamera()">✕</button>
+        <div class="camera-controls">
+            <button class="capture-btn" onclick="capturePhoto()"></button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="captureCanvas" style="display: none;"></canvas>
+
+    <script>
+        let currentCellIndex = null;
+        let photos = {};
+        let stream = null;
+
+        // Initialize grid on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateGrid();
+        });
+
+        function updateGrid() {
+            const rows = parseInt(document.getElementById('rows').value) || 3;
+            const cols = parseInt(document.getElementById('cols').value) || 3;
+            const grid = document.getElementById('photoGrid');
+
+            // Calculate cell size based on container width
+            const containerWidth = grid.parentElement.clientWidth - 40;
+            const cellSize = Math.min(Math.floor((containerWidth - (cols - 1) * 10) / cols), 200);
+
+            grid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+            grid.innerHTML = '';
+
+            const totalCells = rows * cols;
+
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = i;
+
+                if (photos[i]) {
+                    cell.classList.add('has-photo');
+                    cell.innerHTML = `
+                        <img src="${photos[i]}" alt="Photo ${i + 1}">
+                        <button class="delete-btn" onclick="deletePhoto(event, ${i})">✕</button>
+                    `;
+                } else {
+                    cell.innerHTML = `
+                        <div class="placeholder">
+                            <div class="placeholder-icon">+</div>
+                            <div>タップして追加</div>
+                        </div>
+                    `;
+                    cell.onclick = () => openModal(i);
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function openModal(cellIndex) {
+            currentCellIndex = cellIndex;
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('photoModal').classList.remove('active');
+            currentCellIndex = null;
+        }
+
+        function openCamera() {
+            closeModal();
+            const preview = document.getElementById('cameraPreview');
+            const video = document.getElementById('cameraVideo');
+
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' },
+                audio: false
+            })
+            .then(s => {
+                stream = s;
+                video.srcObject = stream;
+                preview.classList.add('active');
+            })
+            .catch(err => {
+                console.error('Camera error:', err);
+                alert('カメラにアクセスできませんでした。ギャラリーから選択してください。');
+                openGallery();
+            });
+        }
+
+        function closeCamera() {
+            const preview = document.getElementById('cameraPreview');
+            preview.classList.remove('active');
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('captureCanvas');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            photos[currentCellIndex] = imageData;
+
+            closeCamera();
+            updateGrid();
+        }
+
+        function openGallery() {
+            closeModal();
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    photos[currentCellIndex] = event.target.result;
+                    updateGrid();
+                };
+                reader.readAsDataURL(file);
+            }
+            this.value = '';
+        });
+
+        function deletePhoto(event, index) {
+            event.stopPropagation();
+            delete photos[index];
+            updateGrid();
+        }
+
+        function clearAllPhotos() {
+            if (Object.keys(photos).length === 0) return;
+            if (confirm('すべての写真を削除しますか?')) {
+                photos = {};
+                updateGrid();
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            updateGrid();
+        });
+    </script>
+</body>
+</html>
