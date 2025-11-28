@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Grid - 写真グリッドアプリ</title>
+    <title>Movie Grid - 動画グリッドアプリ</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,13 +13,13 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -27,15 +27,17 @@
             color: white;
             text-align: center;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 2rem;
         }
 
         .controls {
-            background: white;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .control-row {
@@ -54,21 +56,23 @@
 
         label {
             font-weight: 600;
-            color: #333;
+            color: white;
         }
 
         input[type="number"] {
             width: 70px;
             padding: 8px 12px;
-            border: 2px solid #ddd;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 8px;
             font-size: 16px;
             text-align: center;
+            background: rgba(255,255,255,0.1);
+            color: white;
         }
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #e94560;
         }
 
         button {
@@ -82,13 +86,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
         }
 
         .btn-danger {
@@ -101,23 +105,24 @@
         }
 
         .grid-container {
-            background: white;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .photo-grid {
+        .video-grid {
             display: grid;
             gap: 10px;
             justify-content: center;
         }
 
         .grid-cell {
-            aspect-ratio: 1;
-            background: #f0f0f0;
+            aspect-ratio: 16/9;
+            background: rgba(255,255,255,0.05);
             border-radius: 8px;
-            border: 3px dashed #ccc;
+            border: 3px dashed rgba(255,255,255,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -125,58 +130,103 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
-            min-width: 80px;
-            min-height: 80px;
+            min-width: 200px;
+            min-height: 112px;
         }
 
         .grid-cell:hover {
-            border-color: #667eea;
-            background: #f8f8ff;
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
         }
 
-        .grid-cell.has-photo {
+        .grid-cell.has-video {
             border: none;
+            background: #000;
         }
 
-        .grid-cell img {
+        .grid-cell video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: 5px;
         }
 
         .grid-cell .placeholder {
-            color: #aaa;
+            color: rgba(255,255,255,0.5);
             font-size: 14px;
             text-align: center;
             padding: 10px;
         }
 
         .grid-cell .placeholder-icon {
-            font-size: 32px;
-            margin-bottom: 5px;
+            font-size: 40px;
+            margin-bottom: 8px;
         }
 
         .grid-cell .delete-btn {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 28px;
-            height: 28px;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
             background: rgba(255, 107, 107, 0.9);
             color: white;
             border: none;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             display: none;
             align-items: center;
             justify-content: center;
             padding: 0;
+            z-index: 10;
         }
 
-        .grid-cell.has-photo:hover .delete-btn {
+        .grid-cell.has-video:hover .delete-btn {
             display: flex;
+        }
+
+        .grid-cell .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .grid-cell.has-video:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .grid-cell.has-video.playing .play-overlay {
+            opacity: 0;
+        }
+
+        .play-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-icon::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 20px solid #1a1a2e;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            margin-left: 5px;
         }
 
         .modal {
@@ -186,7 +236,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -197,17 +247,18 @@
         }
 
         .modal-content {
-            background: white;
+            background: #1a1a2e;
             border-radius: 16px;
             padding: 30px;
             max-width: 500px;
             width: 90%;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .modal-content h2 {
             margin-bottom: 20px;
-            color: #333;
+            color: white;
         }
 
         .modal-buttons {
@@ -231,21 +282,21 @@
         }
 
         .btn-camera {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
             color: white;
         }
 
         .btn-gallery {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f3460 0%, #e94560 100%);
             color: white;
         }
 
         .btn-cancel {
-            background: #ddd;
-            color: #666;
+            background: rgba(255,255,255,0.1);
+            color: white;
         }
 
-        #cameraInput, #fileInput {
+        #fileInput {
             display: none;
         }
 
@@ -277,23 +328,87 @@
             right: 0;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            align-items: center;
+            gap: 30px;
         }
 
-        .capture-btn {
+        .record-btn {
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: white;
-            border: 4px solid #ddd;
+            background: #e94560;
+            border: 4px solid white;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .capture-btn:active {
-            transform: scale(0.95);
+        .record-btn.recording {
+            background: #ff0000;
+            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         .close-camera {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .recording-time {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 20px;
+            background: rgba(255,0,0,0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .recording-time.active {
+            display: block;
+        }
+
+        /* Fullscreen video modal */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-modal.active {
+            display: flex;
+        }
+
+        .fullscreen-modal video {
+            max-width: 95%;
+            max-height: 95%;
+        }
+
+        .fullscreen-close {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -313,8 +428,8 @@
             }
 
             .grid-cell {
-                min-width: 60px;
-                min-height: 60px;
+                min-width: 150px;
+                min-height: 84px;
             }
 
             .grid-cell .placeholder {
@@ -322,47 +437,47 @@
             }
 
             .grid-cell .placeholder-icon {
-                font-size: 24px;
+                font-size: 30px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Photo Grid</h1>
+        <h1>🎬 Movie Grid</h1>
 
         <div class="controls">
             <div class="control-row">
                 <div class="control-group">
                     <label for="rows">行数:</label>
-                    <input type="number" id="rows" min="1" max="10" value="3">
+                    <input type="number" id="rows" min="1" max="10" value="2">
                 </div>
                 <div class="control-group">
                     <label for="cols">列数:</label>
-                    <input type="number" id="cols" min="1" max="10" value="3">
+                    <input type="number" id="cols" min="1" max="10" value="2">
                 </div>
                 <button class="btn-primary" onclick="updateGrid()">グリッド更新</button>
-                <button class="btn-danger" onclick="clearAllPhotos()">全削除</button>
+                <button class="btn-danger" onclick="clearAllVideos()">全削除</button>
             </div>
         </div>
 
         <div class="grid-container">
-            <div class="photo-grid" id="photoGrid"></div>
+            <div class="video-grid" id="videoGrid"></div>
         </div>
     </div>
 
-    <!-- Photo Selection Modal -->
-    <div class="modal" id="photoModal">
+    <!-- Video Selection Modal -->
+    <div class="modal" id="videoModal">
         <div class="modal-content">
-            <h2>写真を追加</h2>
+            <h2>動画を追加</h2>
             <div class="modal-buttons">
                 <button class="modal-btn btn-camera" onclick="openCamera()">
-                    <span class="modal-btn-icon">📷</span>
+                    <span class="modal-btn-icon">🎥</span>
                     カメラで撮影
                 </button>
                 <button class="modal-btn btn-gallery" onclick="openGallery()">
-                    <span class="modal-btn-icon">🖼️</span>
-                    ギャラリーから選択
+                    <span class="modal-btn-icon">📁</span>
+                    ファイルから選択
                 </button>
                 <button class="modal-btn btn-cancel" onclick="closeModal()">
                     キャンセル
@@ -373,20 +488,31 @@
 
     <!-- Camera Preview -->
     <div class="camera-preview" id="cameraPreview">
-        <video id="cameraVideo" autoplay playsinline></video>
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="recording-time" id="recordingTime">00:00</div>
         <button class="close-camera" onclick="closeCamera()">✕</button>
         <div class="camera-controls">
-            <button class="capture-btn" onclick="capturePhoto()"></button>
+            <button class="record-btn" id="recordBtn" onclick="toggleRecording()"></button>
         </div>
     </div>
 
-    <input type="file" id="fileInput" accept="image/*">
-    <canvas id="captureCanvas" style="display: none;"></canvas>
+    <!-- Fullscreen Video Modal -->
+    <div class="fullscreen-modal" id="fullscreenModal">
+        <video id="fullscreenVideo" controls></video>
+        <button class="fullscreen-close" onclick="closeFullscreen()">✕</button>
+    </div>
+
+    <input type="file" id="fileInput" accept="video/*">
 
     <script>
         let currentCellIndex = null;
-        let photos = {};
+        let videos = {};
         let stream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let recordingTimer = null;
+        let recordingSeconds = 0;
 
         // Initialize grid on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -394,15 +520,15 @@
         });
 
         function updateGrid() {
-            const rows = parseInt(document.getElementById('rows').value) || 3;
-            const cols = parseInt(document.getElementById('cols').value) || 3;
-            const grid = document.getElementById('photoGrid');
+            const rows = parseInt(document.getElementById('rows').value) || 2;
+            const cols = parseInt(document.getElementById('cols').value) || 2;
+            const grid = document.getElementById('videoGrid');
 
             // Calculate cell size based on container width
             const containerWidth = grid.parentElement.clientWidth - 40;
-            const cellSize = Math.min(Math.floor((containerWidth - (cols - 1) * 10) / cols), 200);
+            const cellWidth = Math.min(Math.floor((containerWidth - (cols - 1) * 10) / cols), 400);
 
-            grid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, ${cellWidth}px)`;
             grid.innerHTML = '';
 
             const totalCells = rows * cols;
@@ -412,17 +538,39 @@
                 cell.className = 'grid-cell';
                 cell.dataset.index = i;
 
-                if (photos[i]) {
-                    cell.classList.add('has-photo');
+                if (videos[i]) {
+                    cell.classList.add('has-video');
                     cell.innerHTML = `
-                        <img src="${photos[i]}" alt="Photo ${i + 1}">
-                        <button class="delete-btn" onclick="deletePhoto(event, ${i})">✕</button>
+                        <video src="${videos[i]}" loop muted playsinline></video>
+                        <div class="play-overlay"><div class="play-icon"></div></div>
+                        <button class="delete-btn" onclick="deleteVideo(event, ${i})">✕</button>
                     `;
+
+                    const video = cell.querySelector('video');
+
+                    // Play on hover
+                    cell.addEventListener('mouseenter', () => {
+                        video.play();
+                        cell.classList.add('playing');
+                    });
+
+                    cell.addEventListener('mouseleave', () => {
+                        video.pause();
+                        video.currentTime = 0;
+                        cell.classList.remove('playing');
+                    });
+
+                    // Click to fullscreen
+                    cell.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-btn')) {
+                            openFullscreen(videos[i]);
+                        }
+                    });
                 } else {
                     cell.innerHTML = `
                         <div class="placeholder">
-                            <div class="placeholder-icon">+</div>
-                            <div>タップして追加</div>
+                            <div class="placeholder-icon">🎬</div>
+                            <div>タップして動画を追加</div>
                         </div>
                     `;
                     cell.onclick = () => openModal(i);
@@ -434,11 +582,11 @@
 
         function openModal(cellIndex) {
             currentCellIndex = cellIndex;
-            document.getElementById('photoModal').classList.add('active');
+            document.getElementById('videoModal').classList.add('active');
         }
 
         function closeModal() {
-            document.getElementById('photoModal').classList.remove('active');
+            document.getElementById('videoModal').classList.remove('active');
             currentCellIndex = null;
         }
 
@@ -449,7 +597,7 @@
 
             navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment' },
-                audio: false
+                audio: true
             })
             .then(s => {
                 stream = s;
@@ -458,7 +606,7 @@
             })
             .catch(err => {
                 console.error('Camera error:', err);
-                alert('カメラにアクセスできませんでした。ギャラリーから選択してください。');
+                alert('カメラにアクセスできませんでした。ファイルから選択してください。');
                 openGallery();
             });
         }
@@ -467,27 +615,92 @@
             const preview = document.getElementById('cameraPreview');
             preview.classList.remove('active');
 
+            if (isRecording) {
+                stopRecording();
+            }
+
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 stream = null;
             }
+
+            resetRecordingUI();
         }
 
-        function capturePhoto() {
-            const video = document.getElementById('cameraVideo');
-            const canvas = document.getElementById('captureCanvas');
+        function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+        function startRecording() {
+            recordedChunks = [];
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+            const options = { mimeType: 'video/webm;codecs=vp9,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm;codecs=vp8,opus';
+            }
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm';
+            }
 
-            const imageData = canvas.toDataURL('image/jpeg', 0.8);
-            photos[currentCellIndex] = imageData;
+            mediaRecorder = new MediaRecorder(stream, options);
 
-            closeCamera();
-            updateGrid();
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const videoURL = URL.createObjectURL(blob);
+                videos[currentCellIndex] = videoURL;
+                closeCamera();
+                updateGrid();
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+
+            document.getElementById('recordBtn').classList.add('recording');
+            document.getElementById('recordingTime').classList.add('active');
+
+            recordingSeconds = 0;
+            updateRecordingTime();
+            recordingTimer = setInterval(updateRecordingTime, 1000);
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+        }
+
+        function updateRecordingTime() {
+            const mins = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+            const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('recordingTime').textContent = `${mins}:${secs}`;
+            recordingSeconds++;
+        }
+
+        function resetRecordingUI() {
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('recordingTime').classList.remove('active');
+            document.getElementById('recordingTime').textContent = '00:00';
+            recordingSeconds = 0;
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
         }
 
         function openGallery() {
@@ -498,33 +711,66 @@
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    photos[currentCellIndex] = event.target.result;
-                    updateGrid();
-                };
-                reader.readAsDataURL(file);
+                const videoURL = URL.createObjectURL(file);
+                videos[currentCellIndex] = videoURL;
+                updateGrid();
             }
             this.value = '';
         });
 
-        function deletePhoto(event, index) {
+        function deleteVideo(event, index) {
             event.stopPropagation();
-            delete photos[index];
+            if (videos[index]) {
+                URL.revokeObjectURL(videos[index]);
+            }
+            delete videos[index];
             updateGrid();
         }
 
-        function clearAllPhotos() {
-            if (Object.keys(photos).length === 0) return;
-            if (confirm('すべての写真を削除しますか?')) {
-                photos = {};
+        function clearAllVideos() {
+            if (Object.keys(videos).length === 0) return;
+            if (confirm('すべての動画を削除しますか?')) {
+                Object.values(videos).forEach(url => URL.revokeObjectURL(url));
+                videos = {};
                 updateGrid();
             }
         }
 
+        function openFullscreen(videoSrc) {
+            const modal = document.getElementById('fullscreenModal');
+            const video = document.getElementById('fullscreenVideo');
+            video.src = videoSrc;
+            modal.classList.add('active');
+            video.play();
+        }
+
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreenModal');
+            const video = document.getElementById('fullscreenVideo');
+            video.pause();
+            video.src = '';
+            modal.classList.remove('active');
+        }
+
+        // Close fullscreen on background click
+        document.getElementById('fullscreenModal').addEventListener('click', (e) => {
+            if (e.target.id === 'fullscreenModal') {
+                closeFullscreen();
+            }
+        });
+
         // Handle window resize
         window.addEventListener('resize', () => {
             updateGrid();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFullscreen();
+                closeModal();
+                closeCamera();
+            }
         });
     </script>
 </body>
